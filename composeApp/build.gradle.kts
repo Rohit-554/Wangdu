@@ -90,6 +90,8 @@ kotlin {
             // kotlinx-datetime
             implementation(libs.kotlinx.datetime)
 
+            implementation(libs.kotlinx.coroutines.core)
+
             // multiplatform-settings
 
         }

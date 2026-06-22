@@ -22,76 +22,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.jadu.wangdu.ui.viewmodel.HomeUiState
-import io.jadu.wangdu.ui.viewmodel.HomeViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.jadu.wangdu.ui.viewmodel.WhiteBoardViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = koinViewModel(),
+    viewModel: WhiteBoardViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Catylst") },
+                title = { Text("Wangdu") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            when (val currentState = state) {
-                is HomeUiState.Loading -> {
-                    Text("Loading...", style = MaterialTheme.typography.bodyLarge)
-                }
-                is HomeUiState.Success -> {
-                    Text(
-                        text = currentState.message,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-
-
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp),
-                    ) {
-                        items(currentState.items) { item ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                ),
-                            ) {
-                                Text(
-                                    text = item,
-                                    modifier = Modifier.padding(16.dp),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                        }
+                actions = {
+                    Button(
+                        onClick = viewModel::clearBoard
+                    ){
+                        Text("boom boom")
                     }
                 }
-                is HomeUiState.Error -> {
-                    Text(
-                        text = currentState.message,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
+            )
         }
+    ) { paddingValues ->
+        WhiteBoardCanvas(
+            state = state,
+            onDragStart = viewModel::onDragStart,
+            onDrag = viewModel::onDrag,
+            onDragEnd = viewModel::onDragEnd,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        )
+
     }
 }
