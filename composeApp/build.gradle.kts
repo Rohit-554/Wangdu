@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -22,6 +23,17 @@ kotlin {
 
     jvm("desktop")
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs("wasmJs") {
+        outputModuleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        binaries.executable()
+    }
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -31,6 +43,15 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
+        }
+        val desktopMain by getting
+        desktopMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.kotlinx.coroutines.swing)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -101,6 +122,22 @@ dependencies {
     add("kspAndroid", libs.mockative.processor)
     add("kspIosArm64", libs.mockative.processor)
     add("kspIosSimulatorArm64", libs.mockative.processor)
+}
+
+compose.desktop {
+    application {
+        mainClass = "io.jadu.wangdu.MainKt"
+
+        nativeDistributions {
+            targetFormats(
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
+            )
+            packageName = "io.jadu.wangdu"
+            packageVersion = "1.0.0"
+        }
+    }
 }
 
 // Room schema directory configured via KSP arguments

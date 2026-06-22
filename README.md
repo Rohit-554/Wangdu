@@ -3,8 +3,8 @@
 Generated with Catylst KMP Starter Kit.
 
 ## Features
-- ktor
 - server
+- ktor
 - Sample Code: Included
 
 ## Platforms

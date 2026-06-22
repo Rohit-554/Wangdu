@@ -42,6 +42,9 @@ kotlinx-datetime = "0.7.1"
 
 # Alarmee
 
+# Coroutines (Main dispatcher for desktop)
+kotlinx-coroutines = "1.10.2"
+
 # Testing
 kotlinx-coroutines-test = "1.10.2"
 turbine = "1.2.0"
@@ -84,6 +87,8 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
 # Room 3.0
 
