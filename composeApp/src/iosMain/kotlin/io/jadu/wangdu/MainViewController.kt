@@ -12,4 +12,4 @@ fun initKoin() {
 
 fun MainViewController() = ComposeUIViewController(
     configure = { initKoin() }
-) { App() }
+) { App(serverHost = "127.0.0.1", serverPort = 8080) }

@@ -82,6 +82,7 @@ ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 ktor-serverWebsockets = { module = "io.ktor:ktor-server-websockets-jvm", version.ref = "ktor" }
+ktor-serverCors = { module = "io.ktor:ktor-server-cors-jvm", version.ref = "ktor" }
 
 # Ktor Client (for :composeApp module)
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -92,6 +93,7 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 
 # Room 3.0
 

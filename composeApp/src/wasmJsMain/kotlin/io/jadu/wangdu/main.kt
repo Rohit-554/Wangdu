@@ -12,6 +12,6 @@ fun main() {
         modules(appModule)
     }
     ComposeViewport(document.body!!) {
-        App()
+        App(serverHost = "localhost", serverPort = 8080)
     }
 }

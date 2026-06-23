@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     implementation(libs.ktor.serverWebsockets)
+    implementation(libs.ktor.serverCors)
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
 }
