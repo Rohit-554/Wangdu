@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -93,6 +92,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
 
             // multiplatform-settings
+
+            implementation(libs.ktor.client.websockets)
 
         }
         commonTest.dependencies {

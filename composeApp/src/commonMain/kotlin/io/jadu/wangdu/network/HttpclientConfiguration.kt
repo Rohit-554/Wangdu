@@ -5,6 +5,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -25,4 +26,5 @@ internal fun HttpClientConfig<*>.configureCommonClient() {
         requestTimeoutMillis = 30_000 // The whole request must complete within 30 seconds
         connectTimeoutMillis = 15_000  // Give the app 15 seconds to connect to the server
     }
+    install(WebSockets)
 }

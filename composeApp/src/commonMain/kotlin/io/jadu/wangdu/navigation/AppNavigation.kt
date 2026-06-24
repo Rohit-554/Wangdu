@@ -11,7 +11,10 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    serverHost: String,
+    serverPort: Int
+) {
     val backStack = rememberNavBackStack(
         SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -25,8 +28,10 @@ fun AppNavigation() {
 
     Crossfade(targetState = backStack.lastOrNull() ?: Screen.Home) { screen ->
         when (screen) {
-            is Screen.Home -> HomeScreen()
-            
+            is Screen.Home -> HomeScreen(
+                serverHost = serverHost,
+                serverPort = serverPort
+            )
         }
     }
 }

@@ -11,7 +11,7 @@ import org.koin.dsl.module
 fun appModule(): Module = module {
     single<HttpClient> { httpClient() }
     single { ApiService(get()) }
-    viewModel { WhiteBoardViewModel() }
+    viewModel { WhiteBoardViewModel(get()) }
 }
 
 val appModule = listOf(
