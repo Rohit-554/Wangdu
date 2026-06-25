@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.jadu.wangdu.model.ConnectionState
+import io.jadu.wangdu.domain.model.ConnectionState
 import io.jadu.wangdu.ui.viewmodel.WhiteBoardViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

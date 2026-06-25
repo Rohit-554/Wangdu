@@ -4,80 +4,43 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.jadu.wangdu.model.ConnectionState
-import io.jadu.wangdu.model.DrawPath
-import io.jadu.wangdu.model.WhiteBoardState
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
+import io.jadu.wangdu.domain.model.DrawPath
+import io.jadu.wangdu.domain.model.WhiteBoardState
+import io.jadu.wangdu.domain.repository.WhiteBoardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class WhiteBoardViewModel(
-    private val client: HttpClient
+    private val repository: WhiteBoardRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(WhiteBoardState())
     val state: StateFlow<WhiteBoardState> = _state.asStateFlow()
 
-    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
-    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+    @OptIn(ExperimentalUuidApi::class)
+    private val userId : String = Uuid.random().toString()
 
-    private val _lastReceivedMessage = MutableStateFlow("")
-    val lastReceivedMessage : StateFlow<String> = _lastReceivedMessage.asStateFlow()
+    val connectionState = repository.connectionState
+    val lastReceivedMessage = repository.lastReceivedMessage
 
-    private var session: DefaultClientWebSocketSession? = null
-
-    fun connect(host: String, port: Int){
-        if (_connectionState.value is ConnectionState.Connecting ||
-            _connectionState.value is ConnectionState.Connected
-        ) {
-            return
-        }
-
-        _connectionState.value = ConnectionState.Connecting
+    init {
         viewModelScope.launch {
-            try {
-                client.webSocket(
-                    host = host,
-                    port = port,
-                    path = "/whiteboard"
-                ) {
-                    session = this
-                    _connectionState.value = ConnectionState.Connected
-                    for(frame in incoming) {
-                        if(frame is Frame.Text) {
-                            val text = frame.readText()
-                            println("Received :$text")
-                            _lastReceivedMessage.value = text
-                        }
-                    }
-                }
-            } catch (e : Throwable) {
-                _connectionState.value = ConnectionState.Error(e.message ?: "unknown Error")
-            } finally {
-                session = null
-                if(_connectionState.value !is ConnectionState.Error) {
-                    _connectionState.value = ConnectionState.Disconnected
-                }
+            repository.incomingStrokes.collect { path ->
+                _state.update { it.copy(paths = it.paths + path) }
             }
         }
     }
 
+    fun connect(host: String, port: Int){
+       viewModelScope.launch { repository.connect(host, port) }
+    }
+
     fun sendPing(){
-        val activeSession = session
-        if(activeSession == null || _connectionState.value !is ConnectionState.Connected) {
-            println("Cannot send ping, no active session is there")
-            return
-        }
-        viewModelScope.launch {
-            activeSession.send(Frame.Text("ping"))
-            println("Ping sent")
-        }
+        viewModelScope.launch { repository.sendPing() }
     }
 
     fun onDragStart(offset: Offset) {
@@ -104,13 +67,10 @@ class WhiteBoardViewModel(
     }
 
     fun onDragEnd() {
-        _state.update { currentState->
-            val activePath = currentState.currentPath ?: return@update currentState
-            currentState.copy(
-                paths = currentState.paths + activePath,
-                currentPath = null
-            )
-        }
+        val activePath = _state.value.currentPath ?: return
+        _state.update { it.copy(currentPath = null) }
+        if(activePath.points.isEmpty()) return
+        viewModelScope.launch { repository.send(activePath,userId) }
     }
 
     fun clearBoard() {

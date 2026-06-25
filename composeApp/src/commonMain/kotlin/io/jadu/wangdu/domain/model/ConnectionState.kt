@@ -1,4 +1,4 @@
-package io.jadu.wangdu.model
+package io.jadu.wangdu.domain.model
 
 sealed interface ConnectionState {
     data object Disconnected : ConnectionState
