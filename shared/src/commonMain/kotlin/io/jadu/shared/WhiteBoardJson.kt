@@ -1,6 +1,7 @@
-package io.jadu.wangdu.data.remote
+package io.jadu.shared
 
 import kotlinx.serialization.json.Json
+
 
 val WhiteboardJson = Json {
     ignoreUnknownKeys  = true
