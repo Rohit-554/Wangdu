@@ -4,6 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.jadu.shared.WhiteBoardEvent
+import io.jadu.wangdu.data.mapper.toPath
 import io.jadu.wangdu.domain.model.DrawPath
 import io.jadu.wangdu.domain.model.WhiteBoardState
 import io.jadu.wangdu.domain.repository.WhiteBoardRepository
@@ -25,25 +27,27 @@ class WhiteBoardViewModel(
     private val userId : String = Uuid.random().toString()
 
     val connectionState = repository.connectionState
-    val lastReceivedMessage = repository.lastReceivedMessage
+    private val displayName: String = "User ${userId.take(4)}"
+    private var drawingPoints = mutableListOf<Offset>()
 
     init {
         viewModelScope.launch {
-            repository.incomingStrokes.collect { path ->
-                _state.update { it.copy(paths = it.paths + path) }
+            repository.incomingEvents.collect { event ->
+                when (event) {
+                    is WhiteBoardEvent.StrokeDrawn -> handleStrokeDrawn(event)
+                    is WhiteBoardEvent.BoardCleared -> handleBoardCleared()
+                    is WhiteBoardEvent.UserJoined -> Unit
+                }
             }
         }
     }
 
-    fun connect(host: String, port: Int){
-       viewModelScope.launch { repository.connect(host, port) }
-    }
-
-    fun sendPing(){
-        viewModelScope.launch { repository.sendPing() }
+    fun connect(host: String, port: Int) {
+        viewModelScope.launch { repository.connect(host, port, userId, displayName) }
     }
 
     fun onDragStart(offset: Offset) {
+        drawingPoints = mutableListOf(offset)
         _state.update { currentState ->
             currentState.copy(
                 currentPath = DrawPath(
@@ -56,6 +60,7 @@ class WhiteBoardViewModel(
     }
 
     fun onDrag(offest: Offset) {
+        drawingPoints.add(offest)
         _state.update {currentState ->
             val activePath = currentState.currentPath ?: return@update currentState
             currentState.copy(
@@ -67,19 +72,38 @@ class WhiteBoardViewModel(
     }
 
     fun onDragEnd() {
-        val activePath = _state.value.currentPath ?: return
+        val points = drawingPoints.toList()
+        drawingPoints = mutableListOf()
         _state.update { it.copy(currentPath = null) }
-        if(activePath.points.isEmpty()) return
-        viewModelScope.launch { repository.send(activePath,userId) }
+        if (points.isEmpty()) return
+        val path = DrawPath(points = points, color = DefaultStrokeColor, strokeWidth = DEFAULTSTROKEWIDTH)
+        viewModelScope.launch { repository.sendStroke(path, userId) }
     }
 
     fun clearBoard() {
-        _state.update { WhiteBoardState() }
+        viewModelScope.launch { repository.sendBoardCleared(userId) }
+    }
+
+    private fun handleStrokeDrawn(event: WhiteBoardEvent.StrokeDrawn) {
+        val receivedPath = event.toPath() ?: return
+        _state.update { currentState ->
+            val base = if (currentState.paths.size >= MAX_PATHS) {
+                currentState.paths.takeLast(MAX_PATHS - 1)
+            } else {
+                currentState.paths
+            }
+            currentState.copy(paths = base + receivedPath)
+        }
+    }
+
+    private fun handleBoardCleared() {
+        _state.update { it.copy(paths = emptyList(), currentPath = null) }
     }
 
     private companion object {
         val DefaultStrokeColor = Color.Black
         const val DEFAULTSTROKEWIDTH = 8f
+        const val MAX_PATHS = 500
     }
 }
 

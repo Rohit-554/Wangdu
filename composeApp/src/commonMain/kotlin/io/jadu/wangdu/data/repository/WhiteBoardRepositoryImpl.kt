@@ -1,9 +1,7 @@
 package io.jadu.wangdu.data.repository
 
-import io.jadu.wangdu.data.dto.DrawEvent
-import io.jadu.wangdu.data.mapper.toEvent
-import io.jadu.wangdu.data.mapper.toPath
-import io.jadu.wangdu.data.remote.WhiteboardJson
+import io.jadu.shared.WhiteBoardEvent
+import io.jadu.wangdu.data.mapper.toStrokeDrawn
 import io.jadu.wangdu.domain.model.ConnectionState
 import io.jadu.wangdu.domain.model.DrawPath
 import io.jadu.wangdu.domain.repository.WhiteBoardRepository
@@ -26,14 +24,11 @@ class WhiteBoardRepositoryImpl(
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
-    private val _incomingStrokes = MutableSharedFlow<DrawPath>(extraBufferCapacity = 64)
-    override val incomingStrokes: SharedFlow<DrawPath> = _incomingStrokes.asSharedFlow()
-
-    private val _lastReceivedMessage = MutableStateFlow("")
-    override val lastReceivedMessage: StateFlow<String> = _lastReceivedMessage.asStateFlow()
+    private val _incomingEvents = MutableSharedFlow<WhiteBoardEvent>(extraBufferCapacity = 64)
+    override val incomingEvents: SharedFlow<WhiteBoardEvent> = _incomingEvents.asSharedFlow()
 
     private var session: DefaultClientWebSocketSession? = null
-    override suspend fun connect(host: String, port: Int) {
+    override suspend fun connect(host: String, port: Int, userId: String, displayName: String) {
         if (_connectionState.value is ConnectionState.Connecting ||
             _connectionState.value is ConnectionState.Connected
         ) {
@@ -44,9 +39,15 @@ class WhiteBoardRepositoryImpl(
             client.webSocket(host = host, port = port, path = "/whiteboard") {
                 session = this
                 _connectionState.value = ConnectionState.Connected
+                sendEvent(WhiteBoardEvent.UserJoined(userId = userId, displayName = displayName))
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        receiveStroke(frame.readText())
+                        val event = try {
+                            io.jadu.shared.WhiteboardJson.decodeFromString(WhiteBoardEvent.serializer(), frame.readText())
+                        } catch (e: SerializationException) {
+                            continue
+                        }
+                        _incomingEvents.emit(event)
                     }
                 }
             }
@@ -61,44 +62,23 @@ class WhiteBoardRepositoryImpl(
         }
     }
 
-    private suspend fun receiveStroke(text: String) {
-        println("Received: $text")
-        _lastReceivedMessage.value = text
 
-        val event = try {
-            WhiteboardJson.decodeFromString(DrawEvent.serializer(), text)
-        } catch (e: SerializationException) {
-            println("Ignoring malformed frame: $text — ${e.message}")
-            return
-        }
-
-        if (event.points.isEmpty()) {
-            println("Ignoring stroke with no points from ${event.userId}")
-            return
-        }
-        _incomingStrokes.emit(event.toPath())
+    override suspend fun sendStroke(path: DrawPath, userId: String) {
+        sendEvent(path.toStrokeDrawn(userId))
     }
 
-    override suspend fun send(path: DrawPath, userId: String) {
+    override suspend fun sendBoardCleared(userId: String) {
+        sendEvent(WhiteBoardEvent.BoardCleared(userId))
+    }
+     private suspend fun sendEvent(event: WhiteBoardEvent) {
         val activeSession = session
         if (activeSession == null || _connectionState.value !is ConnectionState.Connected) {
             println("Warning: cannot send stroke, no active session")
             return
         }
-        val event = path.toEvent(userId)
-        val json = WhiteboardJson.encodeToString(DrawEvent.serializer(), event)
-        println("Sending DrawEvent: $json")
+        val json = io.jadu.shared.WhiteboardJson.encodeToString(WhiteBoardEvent.serializer(), event)
+         println(">>> WS send: $json")
         activeSession.send(Frame.Text(json))
-    }
-
-    override suspend fun sendPing() {
-        val activeSession = session
-        if (activeSession == null || _connectionState.value !is ConnectionState.Connected) {
-            println("Warning: cannot send ping, no active session")
-            return
-        }
-        activeSession.send(Frame.Text("boom boom"))
-        println("Ping sent")
     }
 
 }

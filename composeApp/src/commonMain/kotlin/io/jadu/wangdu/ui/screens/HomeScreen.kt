@@ -35,7 +35,6 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
-    val lastReceivedMessage by viewModel.lastReceivedMessage.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -81,22 +80,7 @@ fun HomeScreen(
                 ) {
                     Text("Connect")
                 }
-                Button(
-                    onClick = viewModel::sendPing,
-                    enabled = connectionState is ConnectionState.Connected
-                ) {
-                    Text("Ping")
-                }
             }
-
-            Text(
-                text = "Last echo: $lastReceivedMessage",
-                modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
-                )
-            )
-
 
             WhiteBoardCanvas(
                 state = state,
