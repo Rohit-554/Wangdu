@@ -1,4 +1,4 @@
-package io.jadu.wangdu.model
+package io.jadu.wangdu.domain.model
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
