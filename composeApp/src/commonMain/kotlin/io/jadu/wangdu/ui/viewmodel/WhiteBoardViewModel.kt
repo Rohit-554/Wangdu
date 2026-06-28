@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.jadu.shared.WhiteBoardEvent
 import io.jadu.wangdu.data.mapper.toPath
+import io.jadu.wangdu.domain.model.ConnectionState
 import io.jadu.wangdu.domain.model.DrawPath
 import io.jadu.wangdu.domain.model.WhiteBoardState
 import io.jadu.wangdu.domain.repository.WhiteBoardRepository
@@ -36,7 +37,8 @@ class WhiteBoardViewModel(
                 when (event) {
                     is WhiteBoardEvent.StrokeDrawn -> handleStrokeDrawn(event)
                     is WhiteBoardEvent.BoardCleared -> handleBoardCleared()
-                    is WhiteBoardEvent.UserJoined -> Unit
+                    is WhiteBoardEvent.UserJoined ->
+                        println("User joined the board: ${event.displayName} (${event.userId})")
                 }
             }
         }
@@ -77,7 +79,14 @@ class WhiteBoardViewModel(
         _state.update { it.copy(currentPath = null) }
         if (points.isEmpty()) return
         val path = DrawPath(points = points, color = DefaultStrokeColor, strokeWidth = DEFAULTSTROKEWIDTH)
-        viewModelScope.launch { repository.sendStroke(path, userId) }
+        if(connectionState.value is ConnectionState.Connected) {
+            viewModelScope.launch { repository.sendStroke(path, userId) }
+        } else {
+            println("Stroke drawn offline, not sent to server")
+        }
+
+        _state.update { it.copy(paths = it.paths + path) }
+
     }
 
     fun clearBoard() {
@@ -85,6 +94,7 @@ class WhiteBoardViewModel(
     }
 
     private fun handleStrokeDrawn(event: WhiteBoardEvent.StrokeDrawn) {
+        if(event.userId == userId) return
         val receivedPath = event.toPath() ?: return
         _state.update { currentState ->
             val base = if (currentState.paths.size >= MAX_PATHS) {
