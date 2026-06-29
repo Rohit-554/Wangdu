@@ -30,4 +30,19 @@ sealed class WhiteBoardEvent {
         val displayName: String
     ) : WhiteBoardEvent()
 
+
+    @Serializable
+    @SerialName("cursor_moved")
+    data class CursorMoved(
+        val userId: String,
+        val x: Float,
+        val y: Float,
+        val displayName: String
+    ) : WhiteBoardEvent()
+
+    @Serializable
+    @SerialName("user_left")
+    data class UserLeft(
+        val userId: String
+    ) : WhiteBoardEvent()
 }

@@ -5,7 +5,9 @@ import androidx.compose.ui.graphics.Color
 
 data class WhiteBoardState(
     val paths: List<DrawPath> = emptyList(),
-    val currentPath: DrawPath? = null
+    val currentPath: DrawPath? = null,
+    val cursors: Map<String, CursorState> = emptyMap(),
+    val connectedUsers: Map<String, String> = emptyMap()
 )
 
 data class DrawPath(

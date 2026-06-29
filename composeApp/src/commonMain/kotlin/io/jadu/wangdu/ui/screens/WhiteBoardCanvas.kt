@@ -15,9 +15,16 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.jadu.wangdu.domain.model.CursorState
 import io.jadu.wangdu.domain.model.DrawPath
-
 import io.jadu.wangdu.domain.model.WhiteBoardState
 
 @Composable
@@ -26,8 +33,10 @@ fun WhiteBoardCanvas(
     onDragStart: (Offset) -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
+    onPointerMove:(Float, Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val textMeasurer = rememberTextMeasurer()
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -39,9 +48,20 @@ fun WhiteBoardCanvas(
                     down.consume()
                     drag(down.id) {
                         onDrag(it.position)
+                        onPointerMove(it.position.x, it.position.y)
                         it.consume()
                     }
                     onDragEnd()
+                }
+            }
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if(event.type != PointerEventType.Move) continue
+                        val position = event.changes.first().position
+                        onPointerMove(position.x, position.y)
+                    }
                 }
             }
     ){
@@ -49,7 +69,28 @@ fun WhiteBoardCanvas(
             drawStroke(path)
         }
         state.currentPath?.let { drawStroke(it) }
+        state.cursors.values.forEach { drawCursor(it,textMeasurer) }
     }
+}
+
+private fun DrawScope.drawCursor(
+    cursor: CursorState,
+    textMeasurer: TextMeasurer
+) {
+    val center = Offset(cursor.x, cursor.y)
+    drawCircle(color = cursor.color, radius = 8.dp.toPx(), center = center)
+    drawCircle(
+        color = Color.White,
+        radius = 9.dp.toPx(),
+        center = center,
+        style = Stroke(width = 1.5.dp.toPx())
+    )
+    drawText(
+        textMeasurer = textMeasurer,
+        text = cursor.displayName,
+        topLeft = Offset(cursor.x + 12f, cursor.y - 12f),
+        style = TextStyle(color = cursor.color, fontSize = 12.sp)
+    )
 }
 
 private fun DrawScope.drawStroke(
