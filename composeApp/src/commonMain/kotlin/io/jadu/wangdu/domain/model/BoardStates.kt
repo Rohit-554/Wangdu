@@ -7,7 +7,8 @@ data class WhiteBoardState(
     val paths: List<DrawPath> = emptyList(),
     val currentPath: DrawPath? = null,
     val cursors: Map<String, CursorState> = emptyMap(),
-    val connectedUsers: Map<String, String> = emptyMap()
+    val connectedUsers: Map<String, String> = emptyMap(),
+    val activeTool: DrawingTool = DrawingTool.Pen(color = Color.Black, width = 8f)
 )
 
 data class DrawPath(
