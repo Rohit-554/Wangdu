@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import io.jadu.wangdu.domain.model.CursorState
 import io.jadu.wangdu.domain.model.DrawPath
 import io.jadu.wangdu.domain.model.WhiteBoardState
+import io.jadu.wangdu.ui.theme.WhiteBoardBackgroundColor
 
 @Composable
 fun WhiteBoardCanvas(
@@ -40,7 +41,7 @@ fun WhiteBoardCanvas(
     Canvas(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(WhiteBoardBackgroundColor)
             .pointerInput(Unit) {
                 awaitEachGesture {
                     val down  = awaitFirstDown(requireUnconsumed = false)

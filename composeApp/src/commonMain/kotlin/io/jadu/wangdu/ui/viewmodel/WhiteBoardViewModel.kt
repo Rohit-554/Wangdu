@@ -9,8 +9,10 @@ import io.jadu.wangdu.data.mapper.toPath
 import io.jadu.wangdu.domain.model.ConnectionState
 import io.jadu.wangdu.domain.model.CursorState
 import io.jadu.wangdu.domain.model.DrawPath
+import io.jadu.wangdu.domain.model.DrawingTool
 import io.jadu.wangdu.domain.model.WhiteBoardState
 import io.jadu.wangdu.domain.repository.WhiteBoardRepository
+import io.jadu.wangdu.ui.theme.WhiteBoardBackgroundColor
 import io.jadu.wangdu.utils.colorFromUserId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,14 +46,17 @@ class WhiteBoardViewModel(
         observePresence()
     }
 
+    fun selectTool(tool: DrawingTool) {
+        _state.update { it.copy(activeTool = tool) }
+    }
+
     private fun observeIncomingEvents() {
         viewModelScope.launch {
             repository.incomingEvents.collect { event ->
                 when (event) {
                     is WhiteBoardEvent.StrokeDrawn -> handleStrokeDrawn(event)
                     is WhiteBoardEvent.BoardCleared -> handleBoardCleared()
-                    is WhiteBoardEvent.UserJoined ->
-                        println("User joined the board: ${event.displayName} (${event.userId})")
+                    is WhiteBoardEvent.UserJoined -> handleUserJoined(event)
                     is WhiteBoardEvent.CursorMoved -> handleCursorMoved(event)
                     is WhiteBoardEvent.UserLeft -> handleUserLeft(event)
                 }
@@ -99,16 +104,23 @@ class WhiteBoardViewModel(
 
     fun onDragStart(offset: Offset) {
         drawingPoints = mutableListOf(offset)
+        val (color,width) = activeStrokeStyle()
         _state.update { currentState ->
             currentState.copy(
                 currentPath = DrawPath(
                     points = listOf(offset),
-                    color = DefaultStrokeColor,
-                    strokeWidth = DEFAULTSTROKEWIDTH
+                    color = color,
+                    strokeWidth = width
                 )
             )
         }
     }
+
+    private fun activeStrokeStyle() : Pair<Color, Float> =
+        when(val tool = _state.value.activeTool) {
+            is DrawingTool.Pen -> tool.color to tool.width
+            is DrawingTool.Eraser -> WhiteBoardBackgroundColor to tool.width
+        }
 
     fun onDrag(offest: Offset) {
         drawingPoints.add(offest)
@@ -127,7 +139,8 @@ class WhiteBoardViewModel(
         drawingPoints = mutableListOf()
         _state.update { it.copy(currentPath = null) }
         if (points.isEmpty()) return
-        val path = DrawPath(points = points, color = DefaultStrokeColor, strokeWidth = DEFAULTSTROKEWIDTH)
+        val(color,width) = activeStrokeStyle()
+        val path = DrawPath(points = points, color = color, strokeWidth = width)
         if(connectionState.value is ConnectionState.Connected) {
             viewModelScope.launch { repository.sendStroke(path, userId) }
         } else {
@@ -171,8 +184,6 @@ class WhiteBoardViewModel(
     }
 
     private companion object {
-        val DefaultStrokeColor = Color.Black
-        const val DEFAULTSTROKEWIDTH = 8f
         const val MAX_PATHS = 500
         val CursorThrottleInterval = 50.milliseconds
     }
