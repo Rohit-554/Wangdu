@@ -7,14 +7,19 @@ import androidx.lifecycle.viewModelScope
 import io.jadu.shared.WhiteBoardEvent
 import io.jadu.wangdu.data.mapper.toPath
 import io.jadu.wangdu.domain.model.ConnectionState
+import io.jadu.wangdu.domain.model.CursorState
 import io.jadu.wangdu.domain.model.DrawPath
 import io.jadu.wangdu.domain.model.WhiteBoardState
 import io.jadu.wangdu.domain.repository.WhiteBoardRepository
+import io.jadu.wangdu.utils.colorFromUserId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -31,7 +36,15 @@ class WhiteBoardViewModel(
     private val displayName: String = "User ${userId.take(4)}"
     private var drawingPoints = mutableListOf<Offset>()
 
+    val selfId : String get() = userId
+    private var lastCursorMark: TimeMark? = null
+
     init {
+        observeIncomingEvents()
+        observePresence()
+    }
+
+    private fun observeIncomingEvents() {
         viewModelScope.launch {
             repository.incomingEvents.collect { event ->
                 when (event) {
@@ -39,11 +52,47 @@ class WhiteBoardViewModel(
                     is WhiteBoardEvent.BoardCleared -> handleBoardCleared()
                     is WhiteBoardEvent.UserJoined ->
                         println("User joined the board: ${event.displayName} (${event.userId})")
+                    is WhiteBoardEvent.CursorMoved -> handleCursorMoved(event)
+                    is WhiteBoardEvent.UserLeft -> handleUserLeft(event)
                 }
             }
         }
     }
 
+    private fun observePresence(){
+        viewModelScope.launch {
+            connectionState.collect { state->
+                if(state is ConnectionState.Connected) addSelfToPresence()
+            }
+        }
+    }
+
+    private fun addSelfToPresence(){
+        _state.update { it.copy(connectedUsers = it.connectedUsers + (userId to displayName)) }
+    }
+
+    private fun handleCursorMoved(event: WhiteBoardEvent.CursorMoved) {
+        if(event.userId == userId) return
+        val cursor = CursorState(event.x, event.y, event.displayName, colorFromUserId(event.userId))
+        _state.update { it.copy(cursors = it.cursors + (event.userId to cursor)) }
+    }
+
+    private fun handleUserLeft(event: WhiteBoardEvent.UserLeft) {
+        _state.update {
+            it.copy(
+                cursors = it.cursors - event.userId,
+                connectedUsers = it.connectedUsers - event.userId
+            )
+        }
+    }
+
+    private fun handleUserJoined(event: WhiteBoardEvent.UserJoined) {
+        _state.update {
+            it.copy(
+                connectedUsers = it.connectedUsers + (event.userId to event.displayName)
+            )
+        }
+    }
     fun connect(host: String, port: Int) {
         viewModelScope.launch { repository.connect(host, port, userId, displayName) }
     }
@@ -89,6 +138,17 @@ class WhiteBoardViewModel(
 
     }
 
+    fun onPointerMove(x: Float, y: Float){
+        if(isWithinThrottleInterval()) return
+        lastCursorMark = TimeSource.Monotonic.markNow()
+        viewModelScope.launch { repository.sendCursor(x,y,userId, displayName) }
+    }
+
+    private fun isWithinThrottleInterval(): Boolean {
+        val mark = lastCursorMark ?: return false
+        return mark.elapsedNow() < CursorThrottleInterval
+    }
+
     fun clearBoard() {
         viewModelScope.launch { repository.sendBoardCleared(userId) }
     }
@@ -114,6 +174,7 @@ class WhiteBoardViewModel(
         val DefaultStrokeColor = Color.Black
         const val DEFAULTSTROKEWIDTH = 8f
         const val MAX_PATHS = 500
+        val CursorThrottleInterval = 50.milliseconds
     }
 }
 

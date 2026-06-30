@@ -70,7 +70,17 @@ class WhiteBoardRepositoryImpl(
     override suspend fun sendBoardCleared(userId: String) {
         sendEvent(WhiteBoardEvent.BoardCleared(userId))
     }
-     private suspend fun sendEvent(event: WhiteBoardEvent) {
+
+    override suspend fun sendCursor(
+        x: Float,
+        y: Float,
+        userId: String,
+        displayName: String
+    ) {
+        sendEvent(WhiteBoardEvent.CursorMoved(userId, x, y,displayName))
+    }
+
+    private suspend fun sendEvent(event: WhiteBoardEvent) {
         val activeSession = session
         if (activeSession == null || _connectionState.value !is ConnectionState.Connected) {
             println("Warning: cannot send stroke, no active session")

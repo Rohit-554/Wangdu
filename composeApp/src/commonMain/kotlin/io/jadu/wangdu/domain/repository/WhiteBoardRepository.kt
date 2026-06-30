@@ -12,4 +12,5 @@ interface WhiteBoardRepository {
     suspend fun connect(host: String, port: Int, userId: String, displayName: String)
     suspend fun sendStroke(path: DrawPath, userId: String)
     suspend fun sendBoardCleared(userId: String)
+    suspend fun sendCursor(x: Float, y: Float, userId: String, displayName: String)
 }

@@ -43,6 +43,7 @@ class WhiteBoardConnection (
 
         } finally {
             registry.unregister(userId)
+            broadCastUserLeft(userId)
         }
     }
 
@@ -54,6 +55,11 @@ class WhiteBoardConnection (
         announce(event, rawJson, senderId)
     }
 
+    private suspend fun broadCastUserLeft(userId: String) {
+        val event = WhiteBoardEvent.UserLeft(userId)
+        val json = WhiteboardJson.encodeToString(WhiteBoardEvent.serializer(), event)
+        registry.broadCast(json, excludeUserId = userId)
+    }
     private suspend fun announce(event: WhiteBoardEvent, rawJson: String, excludedUserId: String) {
         registry.broadCast(rawJson, excludedUserId)
     }

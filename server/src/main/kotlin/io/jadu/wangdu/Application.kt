@@ -1,6 +1,5 @@
 package io.jadu.wangdu
 
-import io.jadu.shared.WhiteBoardEvent
 import io.jadu.wangdu.session.WhiteBoardConnection
 import io.jadu.wangdu.session.WhiteBoardSessionRegistry
 import io.ktor.http.HttpHeaders
@@ -52,13 +51,5 @@ fun Application.module() {
         webSocket("/whiteboard") {
             WhiteBoardConnection(this, registry).handle()
         }
-    }
-}
-
-fun parseEvent(event: WhiteBoardEvent) {
-    when(event) {
-        is WhiteBoardEvent.BoardCleared -> {}
-        is WhiteBoardEvent.StrokeDrawn -> {}
-        is WhiteBoardEvent.UserJoined -> {}
     }
 }
