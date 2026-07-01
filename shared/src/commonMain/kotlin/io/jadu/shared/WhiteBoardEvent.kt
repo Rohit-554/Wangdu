@@ -7,13 +7,16 @@ import kotlinx.serialization.Serializable
 data class PointData(val x: Float, val y: Float)
 
 @Serializable
+data class RoasterEntry(val userID : String, val displayName: String)
+
+@Serializable
 sealed class WhiteBoardEvent {
     @Serializable
     @SerialName("stroke_drawn")
     data class StrokeDrawn(
         val userId: String,
         val points: List<PointData>,
-        val color: Int,
+        val color: Long,
         val strokeWidth: Float
     ) : WhiteBoardEvent()
 
@@ -44,5 +47,11 @@ sealed class WhiteBoardEvent {
     @SerialName("user_left")
     data class UserLeft(
         val userId: String
+    ) : WhiteBoardEvent()
+
+    @Serializable
+    @SerialName("roaster_sync")
+    data class RoasterSync(
+        val users: List<RoasterEntry>
     ) : WhiteBoardEvent()
 }

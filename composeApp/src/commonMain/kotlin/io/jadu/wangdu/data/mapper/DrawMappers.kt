@@ -9,7 +9,7 @@ import io.jadu.wangdu.domain.model.DrawPath
 fun DrawPath.toStrokeDrawn(userId: String) : WhiteBoardEvent = WhiteBoardEvent.StrokeDrawn(
     userId = userId,
     points = points.map { PointData(it.x, it.y) },
-    color = color.value.toInt(),
+    color = color.value.toLong(),
     strokeWidth = strokeWidth
 )
 
