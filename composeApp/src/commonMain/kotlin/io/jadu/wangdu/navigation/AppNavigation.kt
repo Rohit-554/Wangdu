@@ -6,6 +6,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.savedstate.serialization.SavedStateConfiguration
 import io.jadu.wangdu.ui.screens.HomeScreen
+import io.jadu.wangdu.ui.screens.NameEntryScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -19,18 +20,25 @@ fun AppNavigation(
         SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
+                    subclass(Screen.NameEntry::class)
                     subclass(Screen.Home::class)
                 }
             }
         },
-        Screen.Home
+        Screen.NameEntry
     )
 
-    Crossfade(targetState = backStack.lastOrNull() ?: Screen.Home) { screen ->
+    Crossfade(targetState = backStack.lastOrNull() ?: Screen.NameEntry) { screen ->
         when (screen) {
+            is Screen.NameEntry -> NameEntryScreen(
+                onJoin = {
+                    backStack.add(Screen.Home(it))
+                }
+            )
             is Screen.Home -> HomeScreen(
                 serverHost = serverHost,
-                serverPort = serverPort
+                serverPort = serverPort,
+                displayName = screen.displayName
             )
         }
     }
