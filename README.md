@@ -1,18 +1,15 @@
 # Wangdu 
-
-A real time collaborative whiteboard built with Kotlin Multiplatform and Compose Multiplatform. Multiple clients draw on a shared canvas, see each other's live cursors, and stay in sync over WebSockets with server side persistence.
-
-# Special Mentions 
-- Template Generated via Catylst KMP Starter (Android Studio Plugin)
-
-## Badges
-
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.21-7F52FF?logo=kotlin&logoColor=white)
 ![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11.0--rc01-4285F4?logo=jetpackcompose&logoColor=white)
 ![Ktor](https://img.shields.io/badge/Ktor-3.4.3-087CFA?logo=ktor&logoColor=white)
 ![Koin](https://img.shields.io/badge/Koin-4.1.1-F9A825)
 ![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Desktop-2C3E50)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
+
+A real time collaborative whiteboard built with Kotlin Multiplatform and Compose Multiplatform. Multiple clients draw on a shared canvas, see each other's live cursors, and stay in sync over WebSockets with server side persistence.
+
+# Special Mentions 
+- Template Generated via Catylst KMP Starter (Android Studio Plugin)
 
 ## Demo
 
@@ -137,3 +134,5 @@ Contributions are welcome. Please read the [Contributing Guidelines](CONTRIBUTIN
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+Build with Love ❤️ by Jadu
