@@ -6,5 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Screen : NavKey {
     @Serializable
-    data object Home : Screen
+    data class Home(val displayName: String) : Screen
+
+    @Serializable
+    data object NameEntry : Screen
 }

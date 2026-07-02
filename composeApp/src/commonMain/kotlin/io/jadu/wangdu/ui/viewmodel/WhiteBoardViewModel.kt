@@ -35,7 +35,7 @@ class WhiteBoardViewModel(
     private val userId : String = Uuid.random().toString()
 
     val connectionState = repository.connectionState
-    private val displayName: String = "User ${userId.take(4)}"
+    private var displayName: String = ""
     private var drawingPoints = mutableListOf<Offset>()
 
     val selfId : String get() = userId
@@ -107,7 +107,8 @@ class WhiteBoardViewModel(
             )
         }
     }
-    fun connect(host: String, port: Int) {
+    fun connect(host: String, port: Int, displayName: String) {
+        this.displayName = displayName
         viewModelScope.launch { repository.connect(host, port, userId, displayName) }
     }
 

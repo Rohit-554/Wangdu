@@ -49,7 +49,8 @@ import kotlin.math.roundToInt
 fun HomeScreen(
     viewModel: WhiteBoardViewModel = koinViewModel(),
     serverHost: String,
-    serverPort: Int
+    serverPort: Int,
+    displayName: String
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
@@ -99,7 +100,7 @@ fun HomeScreen(
             ) {
                 Button(
                     onClick = {
-                        viewModel.connect(serverHost, serverPort)
+                        viewModel.connect(serverHost, serverPort, displayName)
                     },
                     enabled = connectionState is ConnectionState.Disconnected ||
                             connectionState is ConnectionState.Error
