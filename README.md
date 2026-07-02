@@ -3,7 +3,7 @@
 ![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11.0--rc01-4285F4?logo=jetpackcompose&logoColor=white)
 ![Ktor](https://img.shields.io/badge/Ktor-3.4.3-087CFA?logo=ktor&logoColor=white)
 ![Koin](https://img.shields.io/badge/Koin-4.1.1-F9A825)
-![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Desktop-2C3E50)
+![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Desktop%20%7C%20Web-2C3E50)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 A real time collaborative whiteboard built with Kotlin Multiplatform and Compose Multiplatform. Multiple clients draw on a shared canvas, see each other's live cursors, and stay in sync over WebSockets with server side persistence.
@@ -79,6 +79,12 @@ A real time collaborative whiteboard built with Kotlin Multiplatform and Compose
 
 ```bash
 ./gradlew :composeApp:run
+```
+
+### Run the Web app
+
+```bash
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
 ```
 
 ### Run the iOS app
