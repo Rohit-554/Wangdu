@@ -1,5 +1,7 @@
 package io.jadu.wangdu
 
+import io.jadu.wangdu.database.StrokeStore
+import io.jadu.wangdu.database.WhiteBoardDataBase
 import io.jadu.wangdu.session.WhiteBoardConnection
 import io.jadu.wangdu.session.WhiteBoardSessionRegistry
 import io.ktor.http.HttpHeaders
@@ -24,8 +26,10 @@ fun main() {
 
 fun Application.module() {
 
-    val registry = WhiteBoardSessionRegistry()
+    WhiteBoardDataBase.connect()
 
+    val registry = WhiteBoardSessionRegistry()
+    val strokeStore = StrokeStore()
     install(WebSockets){
         pingPeriod = 15.seconds
         timeout = 15.seconds
@@ -49,7 +53,7 @@ fun Application.module() {
         }
 
         webSocket("/whiteboard") {
-            WhiteBoardConnection(this, registry).handle()
+            WhiteBoardConnection(this, registry, strokeStore = strokeStore).handle()
         }
     }
 }

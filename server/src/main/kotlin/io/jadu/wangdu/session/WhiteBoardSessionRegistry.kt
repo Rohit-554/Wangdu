@@ -1,5 +1,6 @@
 package io.jadu.wangdu.session
 
+import io.jadu.shared.RoasterEntry
 import io.jadu.wangdu.model.WhiteBoardSession
 import io.ktor.websocket.Frame
 import java.util.concurrent.ConcurrentHashMap
@@ -23,6 +24,10 @@ class WhiteBoardSessionRegistry {
             sendQuietly(peer,message)
         }
     }
+    fun roaster(excludeUserId: String) : List<RoasterEntry> =
+        sessions.values
+            .filter { it.userId!=excludeUserId }
+            .map { RoasterEntry(it.userId, it.displayName) }
 
     private suspend fun sendQuietly(peer: WhiteBoardSession, message: String){
         try {

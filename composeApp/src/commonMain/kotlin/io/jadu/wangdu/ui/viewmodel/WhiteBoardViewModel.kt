@@ -59,8 +59,17 @@ class WhiteBoardViewModel(
                     is WhiteBoardEvent.UserJoined -> handleUserJoined(event)
                     is WhiteBoardEvent.CursorMoved -> handleCursorMoved(event)
                     is WhiteBoardEvent.UserLeft -> handleUserLeft(event)
+                    is WhiteBoardEvent.RoasterSync -> handleRoasterSync(event)
                 }
             }
+        }
+    }
+
+    private fun handleRoasterSync(event: WhiteBoardEvent.RoasterSync) {
+        _state.update { state->
+            state.copy(
+                connectedUsers = state.connectedUsers + event.users.associate { it.userID to it.displayName }
+            )
         }
     }
 

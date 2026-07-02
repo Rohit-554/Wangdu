@@ -2,6 +2,7 @@ package io.jadu.wangdu.session
 
 import io.jadu.shared.WhiteBoardEvent
 import io.jadu.shared.WhiteboardJson
+import io.jadu.wangdu.database.StrokeStore
 import io.jadu.wangdu.model.WhiteBoardSession
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.CloseReason
@@ -9,18 +10,42 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 
 class WhiteBoardConnection (
     private val socket: DefaultWebSocketServerSession,
     private val registry: WhiteBoardSessionRegistry,
+    private val strokeStore: StrokeStore
 ) {
 
     suspend fun handle() {
         val joinRequest = awaitJoin() ?: return
-        registry.register(WhiteBoardSession(joinRequest.event.userId, socket))
+        registry.register(WhiteBoardSession(joinRequest.event.userId, displayName = joinRequest.event.displayName, session = socket))
+        replaySavedStrokes(joinRequest.event.userId)
+        sendRoaster(joinRequest.event.userId)
         announce(joinRequest.event, joinRequest.rawJson,joinRequest.event.userId)
         relayUntilClosed(joinRequest.event.userId)
+    }
+
+    private suspend fun replaySavedStrokes(userId: String) {
+        val strokes = strokeStore.loadInOrder()
+        strokes.forEach { sendToClient(it) }
+    }
+
+    private suspend fun sendRoaster(userId: String){
+        val roaster = registry.roaster(excludeUserId = userId)
+        sendToClient(
+            WhiteBoardEvent.RoasterSync(roaster)
+        )
+    }
+
+    private suspend fun sendToClient(event: WhiteBoardEvent) {
+        socket.send(
+            Frame.Text(
+                WhiteboardJson.encodeToString(WhiteBoardEvent.serializer(), event)
+            )
+        )
     }
 
     private suspend fun awaitJoin(): JoinRequest? {
@@ -53,6 +78,15 @@ class WhiteBoardConnection (
             return
         }
         announce(event, rawJson, senderId)
+        record(event)
+    }
+
+    private fun record(event: WhiteBoardEvent) {
+        when(event) {
+            is WhiteBoardEvent.StrokeDrawn -> socket.launch { strokeStore.save(event) }
+            is WhiteBoardEvent.BoardCleared -> socket.launch { strokeStore.clear() }
+            else -> {}
+        }
     }
 
     private suspend fun broadCastUserLeft(userId: String) {
