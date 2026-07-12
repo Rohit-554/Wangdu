@@ -20,7 +20,8 @@ import io.ktor.server.websocket.webSocket
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
+    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
@@ -36,10 +37,7 @@ fun Application.module() {
     }
 
     install(CORS){
-        allowHost("localhost:8080")
-        allowHost("localhost:8081")
-        allowHost("localhost:5173")
-        allowHost("127.0.0.1:8080")
+        anyHost()
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)

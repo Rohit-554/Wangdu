@@ -6,8 +6,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object WhiteBoardDataBase {
     fun connect() {
+        val dbPath = System.getenv("DB_PATH") ?: "whiteboard.db"
         Database.connect(
-            "jdbc:sqlite:whiteboard.db",
+            "jdbc:sqlite:$dbPath",
             "org.sqlite.JDBC"
         )
         transaction {
