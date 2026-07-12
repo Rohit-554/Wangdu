@@ -4,10 +4,20 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
+# The :shared module applies the Android plugin, so Gradle needs ANDROID_HOME
+# to point at an existing directory just to configure the project. No real SDK
+# is needed — building :server only compiles shared's JVM code, so an empty
+# directory is enough.
+ENV ANDROID_HOME=/opt/android-sdk
+RUN mkdir -p /opt/android-sdk
+
 # Copy gradle wrapper and build scripts first for better layer caching
 COPY gradlew ./
 COPY gradle ./gradle
-COPY settings.gradle.kts build.gradle.kts gradle.properties ./
+COPY build.gradle.kts gradle.properties ./
+# Trimmed settings so only :server and :shared are configured (the app modules
+# aren't copied into the container).
+COPY deploy/settings.gradle.kts ./settings.gradle.kts
 
 # Copy modules needed to build the server
 COPY shared ./shared
