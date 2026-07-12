@@ -1,3 +1,5 @@
+import com.google.cloud.tools.jib.gradle.JibExtension
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
@@ -26,4 +28,10 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
     implementation(libs.sqlite.jdbc)
+}
+
+configure<JibExtension> {
+    dockerClient {
+        executable = "/usr/local/bin/docker"
+    }
 }

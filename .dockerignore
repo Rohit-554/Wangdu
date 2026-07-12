@@ -1,0 +1,14 @@
+.git
+.gradle
+.idea
+.kotlin
+build
+*/build
+**/build
+kotlin-js-store
+androidApp
+composeApp
+iosApp
+*.db
+local.properties
+.DS_Store
