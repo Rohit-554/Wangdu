@@ -91,6 +91,47 @@ A real time collaborative whiteboard built with Kotlin Multiplatform and Compose
 
 Open the iOS project in Xcode and run it on a simulator or device.
 
+### Run the Web app (Kotlin/Wasm)
+
+```bash
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+```
+
+## Production Deployment
+
+The app runs in production with the **server on [Render](https://render.com)** and the **web client on [Vercel](https://vercel.com)**. All clients (Web, Desktop, iOS, Android) point at the deployed server over `wss://` (see the platform entry points, e.g. `composeApp/src/wasmJsMain/kotlin/io/jadu/wangdu/main.kt`).
+
+### Server → Render (Docker)
+
+The `Dockerfile` at the repo root builds and runs the Ktor server as a Docker web service.
+
+- **Language:** Docker
+- **Root Directory:** leave blank (the build context must be the repo root, since the server depends on `:shared` and the Gradle wrapper)
+- **Port:** the app reads Render's injected `PORT` env var automatically (`Application.kt`); no configuration needed
+- **Persistence (optional):** attach a Render **Disk** mounted at `/data` to keep the SQLite database (`DB_PATH` defaults to `/data/whiteboard.db`). Without a disk, board data resets on each deploy since the container filesystem is ephemeral.
+
+A trimmed `deploy/settings.gradle.kts` is used inside the container so only `:server` and `:shared` are built (the app modules are skipped). Render redeploys automatically on every push to `main`.
+
+### Web client → Vercel (GitHub Actions)
+
+`.github/workflows/deploy-web.yml` builds the Kotlin/Wasm distribution and deploys it to Vercel on every push to `main`.
+
+Required GitHub repository secrets:
+
+| Secret | Where to find it |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel → Settings → Tokens → *Create Token* |
+| `VERCEL_ORG_ID` | Your Vercel Team ID (Settings → General), or `orgId` in `.vercel/project.json` after `npx vercel link` |
+| `VERCEL_PROJECT_ID` | `projectId` in `.vercel/project.json` after `npx vercel link` |
+
+To deploy the web app manually instead:
+
+```bash
+./gradlew :composeApp:wasmJsBrowserDistribution
+cd composeApp/build/dist/wasmJs/productionExecutable
+npx vercel --prod
+```
+
 ## Before Going to Production
 
 This project is built for learning. The choices below keep it simple to run on a single machine, but they are not safe or scalable for real users. Treat this as a map of what to change before shipping.
