@@ -12,6 +12,6 @@ fun main() {
         modules(appModule)
     }
     ComposeViewport(document.body!!) {
-        App(serverHost = "localhost", serverPort = 8080)
+        App(serverHost = "wangdu.onrender.com", serverPort = 443, serverSecure = true)
     }
 }

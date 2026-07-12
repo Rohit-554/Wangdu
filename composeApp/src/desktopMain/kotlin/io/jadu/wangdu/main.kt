@@ -14,7 +14,7 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "Wangdu",
         ) {
-            App(serverHost = "127.0.0.1", serverPort = 8080)
+            App(serverHost = "wangdu.onrender.com", serverPort = 443, serverSecure = true)
         }
     }
 }

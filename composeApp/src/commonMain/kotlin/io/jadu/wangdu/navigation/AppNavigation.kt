@@ -14,7 +14,8 @@ import kotlinx.serialization.modules.subclass
 @Composable
 fun AppNavigation(
     serverHost: String,
-    serverPort: Int
+    serverPort: Int,
+    serverSecure: Boolean = false
 ) {
     val backStack = rememberNavBackStack(
         SavedStateConfiguration {
@@ -38,6 +39,7 @@ fun AppNavigation(
             is Screen.Home -> HomeScreen(
                 serverHost = serverHost,
                 serverPort = serverPort,
+                serverSecure = serverSecure,
                 displayName = screen.displayName
             )
         }

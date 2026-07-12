@@ -9,12 +9,14 @@ import io.jadu.wangdu.ui.theme.AppTheme
 @Preview
 fun App(
     serverHost: String,
-    serverPort: Int
+    serverPort: Int,
+    serverSecure: Boolean = false
 ) {
     AppTheme {
         AppNavigation(
             serverHost = serverHost,
-            serverPort = serverPort
+            serverPort = serverPort,
+            serverSecure = serverSecure
         )
     }
 }

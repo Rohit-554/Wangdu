@@ -8,6 +8,8 @@ import io.jadu.wangdu.domain.repository.WhiteBoardRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.http.HttpMethod
+import io.ktor.http.URLProtocol
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,7 +30,7 @@ class WhiteBoardRepositoryImpl(
     override val incomingEvents: SharedFlow<WhiteBoardEvent> = _incomingEvents.asSharedFlow()
 
     private var session: DefaultClientWebSocketSession? = null
-    override suspend fun connect(host: String, port: Int, userId: String, displayName: String) {
+    override suspend fun connect(host: String, port: Int, secure: Boolean, userId: String, displayName: String) {
         if (_connectionState.value is ConnectionState.Connecting ||
             _connectionState.value is ConnectionState.Connected
         ) {
@@ -36,7 +38,13 @@ class WhiteBoardRepositoryImpl(
         }
         _connectionState.value = ConnectionState.Connecting
         try {
-            client.webSocket(host = host, port = port, path = "/whiteboard") {
+            client.webSocket(
+                method = HttpMethod.Get,
+                host = host,
+                port = port,
+                path = "/whiteboard",
+                request = { url.protocol = if (secure) URLProtocol.WSS else URLProtocol.WS }
+            ) {
                 session = this
                 _connectionState.value = ConnectionState.Connected
                 sendEvent(WhiteBoardEvent.UserJoined(userId = userId, displayName = displayName))

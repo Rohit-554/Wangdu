@@ -50,6 +50,7 @@ fun HomeScreen(
     viewModel: WhiteBoardViewModel = koinViewModel(),
     serverHost: String,
     serverPort: Int,
+    serverSecure: Boolean = false,
     displayName: String
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,7 +101,7 @@ fun HomeScreen(
             ) {
                 Button(
                     onClick = {
-                        viewModel.connect(serverHost, serverPort, displayName)
+                        viewModel.connect(serverHost, serverPort, serverSecure, displayName)
                     },
                     enabled = connectionState is ConnectionState.Disconnected ||
                             connectionState is ConnectionState.Error
