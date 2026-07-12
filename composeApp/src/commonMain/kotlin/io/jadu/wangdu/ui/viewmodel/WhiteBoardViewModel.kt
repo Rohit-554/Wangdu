@@ -107,9 +107,9 @@ class WhiteBoardViewModel(
             )
         }
     }
-    fun connect(host: String, port: Int, displayName: String) {
+    fun connect(host: String, port: Int, secure: Boolean, displayName: String) {
         this.displayName = displayName
-        viewModelScope.launch { repository.connect(host, port, userId, displayName) }
+        viewModelScope.launch { repository.connect(host, port, secure, userId, displayName) }
     }
 
     fun onDragStart(offset: Offset) {

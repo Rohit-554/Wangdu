@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             App(
-                serverHost = "10.0.2.2" , serverPort = 8080
+                serverHost = "wangdu.onrender.com", serverPort = 443, serverSecure = true
             )
         }
     }
