@@ -10,6 +10,9 @@ plugins {
 }
 
 kotlin {
+    // Pins the JDK used for JVM/Android compilation to a consistent full JDK.
+    jvmToolchain(17)
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -131,6 +134,15 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "io.jadu.wangdu.MainKt"
+
+        // Compose Desktop packaging (jpackage) uses the Gradle runtime JDK by
+        // default, which here is a JBR (no jpackage) or Homebrew JDK (blocked
+        // by Compose's vendor check). Point it at the JDK 17 toolchain so a
+        // plain `./gradlew packageDistributionForCurrentOs` works without any
+        // JAVA_HOME override.
+        javaHome = javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }.get().metadata.installationPath.asFile.absolutePath
 
         nativeDistributions {
             targetFormats(

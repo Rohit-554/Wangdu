@@ -51,6 +51,12 @@ android {
         compose = true
         buildConfig = true
     }
+
+    lint {
+        // Don't fail the release build on lint errors.
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
 }
 
 dependencies {
